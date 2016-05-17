@@ -1,0 +1,15 @@
+<head>
+  <title>simple</title>
+</head>
+
+<body>
+  <h1>Welcome to Meteor!</h1>
+
+  {{> hello}}
+</body>
+
+<template name="hello">
+  <button>{{clickmetext}}</button>
+  <p>You've pressed the button {{counter}} times.</p>
+  <p>But with sessions you've pressed the button {{counter2}} times.</p>
+</template>
