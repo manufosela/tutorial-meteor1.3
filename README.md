@@ -15,7 +15,7 @@ Los principales cambios que trae son:
 
 A la hora de crear un proyecto nada cambia:
 
-```javascript
+```js
   $ meteor create tutorial-meteor-1.3
   $ cd intermediate
   $ meteor
@@ -48,7 +48,7 @@ El fichero package.json donde ira la configuración de los paquetes de node (npm
 #Comentando el código del ejemplo inicial
 
 Podemos ver que en ```server/main.js``` no tenemos código para ejecutar, solo lo mínimo que necesitaremos para agregarlo nosotros:
-```javascript
+```js
 import { Meteor } from 'meteor/meteor';
 
 Meteor.startup(() => {
@@ -63,7 +63,7 @@ En ```client/main.html``` tenemos el HTML del ejemplo. Podemos ver que solo decl
 que Meteor se encargará de añadir dentro del ```<html>```.
 Luego tenemos el tag ```template```. En este caso solo 1, pero podemos tener todos los tag ```template``` que necesitemos, anidándolos como necesitemos, para separar las partes de nuestra app.
 
-```javascript
+```html
   <head>
     <title>simple</title>
   </head>
@@ -87,7 +87,7 @@ Igualmente en la plantilla (template) podemos ver que dentro también se usan lo
 Por defecto Meteor sigue usando su sistema de plantillas llamado ```Blaze``` (basado en ```handlebars```) aunque, como veremos mas adelante, en esta versión permite sustituirlo por ReactJS o por Angular2.
 
 En ```client/main.js``` tenemos el código con el control y funcionamiento relacionado con la plantilla principal.
-```javascript
+```js
   import { Template } from 'meteor/templating';
   import { ReactiveVar } from 'meteor/reactive-var';
 
@@ -125,27 +125,27 @@ En el código javascript cliente es donde vemos bastantes cambios respecto a ver
       3.3 El método ```onCreated```, el cual recibe una función que se ejecuta cuando la plantilla ha sido creada. 
       
   4. Se simplifica la sintaxis de definición de los ```helpers```:
-    ```javascript
-      Template.body.helpers({
+```js
+    Template.body.helpers({
         todos() {
-          return Todos.find();
+            return Todos.find();
         }
-      });
-    ```
-    En vez de como se hacia hasta la versión 1.2:
-    ```javascript
-      Template.body.helpers({
-        todos: function todos(){
-          return Todos.find();
-        }
-      });
-    ```
+    });
+```
+En vez de como se hacia hasta la versión 1.2:
+```js
+  Template.body.helpers({
+    todos: function todos(){
+      return Todos.find();
+    }
+  });
+```
     
-#Step 1 - Cambiando un poco el ejemplo inicial
+# Step 1 - Cambiando un poco el ejemplo inicial
 
 Vamos a añadir a nuestro ejemplo otra variable que dependa de la variable contador. Editamos primero el fichero ```client/main.js```. En el método ```helpers```:
 
-```javascript
+```js
   Template.hello.helpers({
     counter() {
       return Template.instance().counter.get();
@@ -174,13 +174,13 @@ Según guardemos veremos que la app se actualiza sin tener que recargar la pági
 
 Lo primero que haremos será añadir el paquete ```session``` al proyecto:
 
-```javascript
+```bash
 $ cd intermediate
 $ meteor add session
 ```
 Después vamos a declarar en nuestro código una variable de session. En este caso la declaramos después del import en el fichero ```client/main.js```:
 
-```javascript
+```js
 [...]
 import './main.html';
 
@@ -190,7 +190,7 @@ Template.hello.onCreated...
 
 ```
 Ahora añadiremos una nueva variable ```counter2``` en el método ```helpers``` para poder usar el valor de la variable de sesión en nuestra plantilla:
-```javascript
+```js
 Template.hello.helpers({
   counter() {
     return Template.instance().counter.get();
@@ -205,7 +205,7 @@ Template.hello.helpers({
 ```
 Por último incrementaremos esta nueva variable cuando el usuario haga ```click``` en el botón:
 
-```javascript
+```js
 Template.hello.events({
   'click button'(event, instance) {
     // increment the counter when button is clicked
@@ -227,13 +227,114 @@ Ahora tendremos que cambiar el fichero ```client/main.html``` para mostrar el va
 Si no cometimos ningún error nuestra app automáticamente mostrará el resultado de ambos contadores y los incrementará a la vez.
 
 La diferencia es que desde la consola del navegador podremos alterar el valor de ```counter2``` simplemente tecleando:
-```javascript
+```js
 Session.set("counter2", 100)
 ```
 Mientras que la variable ```counter``` no es accesible ni modificable a simple vista, quedando resguardada de cambios indeseados.
 
 
 # Step 3 - El mismo ejemplo con ReactJS
+```ReactJS``` es una librería javascript desarrollada para generar la parte visual (la V de MVC o MVVM o ...) con una fuerte carga de interactividad y reactividad.
+Todo en React es un [componente](http://www.desarrolloweb.com/articulos/que-son-web-components.html), aunque no sigue el estándar del W3C.
+
+En Meteor 1.3 se puede sustituir el sistema de plantillas ```Blaze``` por ```ReactJS``` de esta manera pasaremos a llamar a las plantillas componentes.
+
+Para ello necesitamos instalar el paquete de ```react``` y ```react-dom``` para meteor:
+```bash
+meteor npm install --save react react-dom
+```
+Ahora empezamos con los cambios. 
+
+Lo primero es crear una estructura de directorios mas organizada, que nos ayudará a localizar y entender mejor nuestro código:
+
+```bash
+  tutorial-meteor-1.3
+    |___ imports
+    |      |___ ui
+    |____ client
+            |                 
+            |___ main.css
+            |___ main.html
+            |___ main.js
+    |____ server
+            |___ main.js
+    |____ .meteor
+    |____ package.json
+```
+
+Ahora editamos el fichero ```main.html``` y sustituimos ```{{ hello }}``` por
+```html
+<div id="render-target"></div>
+```
+Este ```div``` es donde vamos a pintar/crear/mostrar todos los componentes react (plantillas).
+
+El fichero ```main.js``` va a cambiar radicalmente. Primero lo renombramos a ```main.jsx```.
+# 
+#### Info
+***
+React usa la extensión ```jsx```. 
+Estos archivos contienen javascript, aunque podemos ver un pseudo-html, como ```render(<App />, document.getElementById('render-target'));``` que despues la libreria de React se encarga de transformar.
+***
+***
+# 
+# 
+Y sustituiremos su contenido por:
+
+```javascript
+import React from 'react';
+import { Meteor } from 'meteor/meteor';
+import { render } from 'react-dom';
+ 
+import App from '../imports/ui/App.jsx';
+ 
+Meteor.startup(() => {
+  render(<App />, document.getElementById('render-target'));
+});
+```
+En este archivo hacemos ```import``` de los paquetes de ```react```, ```meteor``` y ```react-dom```.
+Además vemos que hace ```import``` de un nuevo archivo llamado ```App.jsx``` que contendrá la lógica de nuestra app y cargará el resto de componentes.
+
+#
+#### Info
+***
+import ```React``` from ```'react'```; significa que importa ```react``` y todo el import es accesible desde el objeto ```React```
+
+Igualmente import ```{ Meteor }``` from ```'meteor/meteor'```; significa que carga ```meteor/meteor``` pero en este caso solo usaremos el miembro exportado ```Meteor```, aunque en el paquete pudiera haber mas.
+
+Si quieres mas información sobre ```import``` puedes cosultar [la documentación de MDN](https://developer.mozilla.org/es/docs/Web/JavaScript/Referencia/Sentencias/import)
+***
+***
+# 
+# 
+
+Creamos en ```imports\ui``` el archivo ```App.jsx``` y dentro:
+```javascript
+import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
+
+// App component - represents the whole app
+export default class App extends Component {
+  handleClick(event) {
+    event.preventDefault();
+    console.log("aqui tendria que incrementar la variable contador...");
+  }
+
+  clickmetext() {
+    return "Click Me";
+  }
+
+  render() {
+    return (
+      <div className="container">
+        <button onClick={this.handleClick.bind(this)}>
+          {this.clickmetext()}
+        </button>
+        <p>You`ve pressed the button ?? times.</p>
+      </div>
+    );
+  }
+}
+```
 
 # Step 4 - El mismo ejemplo con Angular 2
 
